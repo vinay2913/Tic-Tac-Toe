@@ -1,0 +1,6 @@
+# Replace with your public GitHub repository URL after pushing this project.
+github_repo_url = "https://github.com/YOUR-USERNAME/tic-tac-toe-devops.git"
+
+# Optional overrides:
+# aws_region    = "ap-south-1"
+# instance_type = "t3.micro"

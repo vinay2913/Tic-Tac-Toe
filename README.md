@@ -1,160 +1,117 @@
-# Tic Tac Toe Game
-# Tic Tac Toe Game – DevOps Project using AWS & Terraform
+# Tic Tac Toe – AWS & Terraform Deployment
 
-## Project Overview
+A two-player Tic Tac Toe web game built with HTML, CSS and JavaScript, deployed on an AWS EC2 instance. Terraform provisions the AWS network and compute resources. EC2 user data installs Nginx and retrieves the static app from this public GitHub repository.
 
-This project demonstrates the deployment of a Tic Tac Toe web application using DevOps tools and cloud infrastructure.
+## Architecture
 
-The main objective is to automate infrastructure provisioning and simplify application deployment using Terraform and AWS.
+GitHub repository → Terraform → AWS VPC → Public subnet → Internet Gateway + route table → Security group (HTTP) → EC2 Ubuntu → Nginx → Tic Tac Toe website.
 
-The Tic Tac Toe game is a simple interactive web application where two players take turns marking X and O on a 3×3 grid. The game automatically identifies the winner or declares a draw.
-
-The application is deployed on AWS infrastructure, demonstrating cloud computing, Infrastructure as Code (IaC), and DevOps practices.
-
-## Technologies Used
-
-- **HTML** – Application structure.
-- **CSS** – Styling and user interface.
-- **JavaScript** – Game logic and functionality.
-- **AWS EC2** – Cloud server hosting.
-- **AWS VPC** – Virtual private cloud networking.
-- **Terraform** – Infrastructure provisioning.
-- **Git & GitHub** – Source code management.
-- **Linux** – Server management.
-- **Apache/Nginx** – Web server.
-
-## Project Architecture
-
-The project follows this deployment workflow:
-
-1. Develop the Tic Tac Toe application using HTML, CSS, and JavaScript.
-2. Push the application source code to GitHub.
-3. Use Terraform to provision AWS infrastructure.
-4. Create an EC2 instance to host the application.
-5. Configure the web server (Apache/Nginx).
-6. Deploy the application files to the EC2 instance.
-7. Access the game through the EC2 public IP address.
-
-## Project Structure
+## Repository structure
 
 ```text
 tic-tac-toe-devops/
-│
-├── index.html
-├── style.css
-├── script.js
-│
+├── app/
+│   ├── index.html
+│   ├── style.css
+│   └── script.js
 ├── terraform/
 │   ├── main.tf
 │   ├── variables.tf
 │   ├── outputs.tf
-│
+│   ├── user_data.sh.tftpl
+│   └── terraform.tfvars.example
+├── .gitignore
 └── README.md
 ```
 
 ## Prerequisites
 
-- AWS Account
-- Terraform installed
-- AWS CLI installed and configured
-- Git installed
-- Linux knowledge
-- Basic knowledge of HTML, CSS, and JavaScript
+- AWS account and permissions to create VPC, subnet, route table, internet gateway, security group and EC2 resources.
+- Terraform 1.5 or later.
+- AWS CLI configured locally (`aws configure`).
+- Git.
+- A **public** GitHub repository containing this project. EC2 clones the repository during first boot.
 
-## Deployment Steps
+## Deploy
 
-### 1. Clone the Repository
+1. Create a GitHub repository named `tic-tac-toe-devops` and push this project to its default branch.
+2. Configure AWS credentials locally. Do not commit access keys.
+3. From the project root, create the Terraform variable file:
 
-```bash
-git clone <your-github-repository-url>
-cd tic-tac-toe-devops
-```
+   ```bash
+   cp terraform/terraform.tfvars.example terraform/terraform.tfvars
+   ```
 
-### 2. Configure AWS Credentials
+4. Edit `terraform/terraform.tfvars` and replace the example GitHub URL with your public repository's HTTPS clone URL.
+5. Run Terraform:
 
-```bash
-aws configure
-```
+   ```bash
+   cd terraform
+   terraform init
+   terraform fmt -recursive
+   terraform validate
+   terraform plan
+   terraform apply
+   ```
 
-Enter your AWS Access Key, Secret Key, region, and output format.
+6. Get the website address:
 
-### 3. Initialize Terraform
+   ```bash
+   terraform output website_url
+   ```
+
+7. Wait a few minutes for EC2 user data to finish installing Nginx and cloning the repository, then open the output URL in a browser.
+
+## Game features
+
+- Two-player, turn-based X and O gameplay.
+- Win detection across rows, columns and diagonals.
+- Draw detection.
+- New Game / reset button.
+- Responsive layout for desktop and mobile.
+
+## What Terraform creates
+
+- VPC with CIDR `10.0.0.0/16`.
+- Public subnet with CIDR `10.0.1.0/24`.
+- Internet Gateway and default route to the internet.
+- Route table association for the public subnet.
+- Security group allowing inbound HTTP on TCP port 80.
+- Ubuntu 24.04 EC2 instance (default type `t3.micro`) with a public IPv4 address.
+- EC2 user data that installs Nginx and deploys the app from GitHub.
+
+## Cleanup
+
+When finished, remove the AWS resources to avoid ongoing charges:
 
 ```bash
 cd terraform
-terraform init
+terraform destroy
 ```
 
-### 4. Validate Terraform Configuration
+Review the plan and type `yes` to confirm.
 
-```bash
-terraform validate
-```
+## Important notes
 
-### 5. Review Infrastructure Plan
+- This is a learning/demo deployment, not a production-hardened architecture.
+- HTTP is not encrypted. Add a domain and HTTPS/TLS before using this for real users.
+- The web server is publicly accessible on port 80. SSH is intentionally not opened by this configuration.
+- The GitHub repository must be public for the EC2 bootstrap script to clone it without credentials.
+- EC2 user data runs at initial instance launch. If deployment fails, inspect `/var/log/cloud-init-output.log` on the instance. Replacing the instance or changing user data with `user_data_replace_on_change = true` triggers a new instance.
+- AWS may charge for EC2, storage, public IPv4 and other resources. Check current AWS pricing and destroy resources when not in use.
 
-```bash
-terraform plan
-```
+## Learning outcomes
 
-### 6. Provision AWS Infrastructure
+- Infrastructure as Code with Terraform.
+- AWS VPC, subnet, Internet Gateway and routing.
+- EC2 provisioning and security group configuration.
+- Linux bootstrapping with EC2 user data.
+- Nginx web hosting.
+- Git/GitHub-based source control and deployment.
 
-```bash
-terraform apply
-```
+## Future improvements
 
-Type `yes` to confirm the infrastructure deployment.
-
-### 7. Deploy the Application
-
-Configure the EC2 instance with Apache or Nginx and copy the Tic Tac Toe application files into the web server's document root.
-
-### 8. Access the Application
-
-Open your browser and enter:
-
-```text
-http://<EC2-PUBLIC-IP>
-```
-
-The Tic Tac Toe game should be accessible through the EC2 instance.
-
-## Expected Outcome
-
-After successful deployment:
-
-- AWS infrastructure is provisioned automatically using Terraform.
-- An EC2 instance is created to host the application.
-- A web server is configured to serve the application.
-- The Tic Tac Toe game becomes accessible through the EC2 public IP.
-- Users can play the game through a web browser.
-
-## Learning Outcomes
-
-Through this project, I gained practical knowledge of:
-
-- Infrastructure as Code using Terraform.
-- AWS cloud infrastructure provisioning.
-- EC2 instance deployment and configuration.
-- VPC and security group management.
-- Linux server administration.
-- Web application hosting using Apache/Nginx.
-- Git and GitHub version control.
-- Basic DevOps deployment workflow.
-
-## Future Enhancements
-
-- Implement CI/CD using Jenkins or GitHub Actions.
-- Automate application deployment.
-- Use Docker to containerize the application.
-- Configure monitoring and logging.
-- Implement HTTPS using SSL certificates.
-- Deploy the application using an AWS automated pipeline.
-
-## Conclusion
-
-This project demonstrates how DevOps practices and Terraform can be used to automate cloud infrastructure provisioning and deploy a web application on AWS.
-
-It combines basic frontend development with cloud computing, Linux administration, Infrastructure as Code, and application deployment.
-
-The project provides hands-on experience with fundamental DevOps tools and AWS services.
+- Add a CI/CD workflow using GitHub Actions or Jenkins.
+- Build and publish a Docker image, then deploy it to EC2.
+- Add HTTPS using a domain and TLS certificate.
+- Add monitoring, logging and deployment health checks.

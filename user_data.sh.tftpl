@@ -1,0 +1,16 @@
+#!/bin/bash
+set -euxo pipefail
+
+apt-get update -y
+apt-get install -y nginx git
+
+mkdir -p /var/www/html
+git clone --depth 1 "${github_repo_url}" /tmp/tic-tac-toe
+
+cp /tmp/tic-tac-toe/app/index.html /var/www/html/index.html
+cp /tmp/tic-tac-toe/app/style.css /var/www/html/style.css
+cp /tmp/tic-tac-toe/app/script.js /var/www/html/script.js
+
+chown -R www-data:www-data /var/www/html
+systemctl enable nginx
+systemctl restart nginx
